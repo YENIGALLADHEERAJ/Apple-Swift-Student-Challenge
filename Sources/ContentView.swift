@@ -89,9 +89,14 @@ struct GardenHeaderView: View {
             HStack(spacing: 8) {
                 // Streak badge
                 HStack(spacing: 4) {
-                    Image(systemName: "flame.fill")
-                        .symbolEffect(.bounce)
-                        .foregroundStyle(.orange)
+                    if #available(macOS 14, iOS 17, *) {
+                        Image(systemName: "flame.fill")
+                            .symbolEffect(.bounce)
+                            .foregroundStyle(.orange)
+                    } else {
+                        Image(systemName: "flame.fill")
+                            .foregroundStyle(.orange)
+                    }
                     Text("\(model.streak)")
                         .font(.subheadline.bold())
                 }
@@ -314,7 +319,6 @@ struct CheckInView: View {
             }
         }
         .animation(.spring(response: 0.35, dampingFraction: 0.70), value: model.showSuccessBanner)
-        .navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -323,10 +327,16 @@ struct CheckInView: View {
 struct AlreadyCheckedInView: View {
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "checkmark.seal.fill")
-                .font(.system(size: 64))
-                .symbolEffect(.bounce)
-                .foregroundStyle(.green)
+            if #available(macOS 14, iOS 17, *) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 64))
+                    .symbolEffect(.bounce)
+                    .foregroundStyle(.green)
+            } else {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 64))
+                    .foregroundStyle(.green)
+            }
             Text("All done for today!")
                 .font(.title2.bold())
             Text("Your flower has been planted in the garden. Come back tomorrow 🌸")
@@ -368,7 +378,7 @@ struct MoodSelectorView: View {
                     .background(
                         model.selectedMood == level
                             ? level.petalColor.opacity(0.25)
-                            : Color(.systemGray6)
+                            : Color.gray.opacity(0.12)
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 14)
@@ -427,7 +437,7 @@ struct WellnessFactorView: View {
                         .background(
                             selected
                                 ? factor.chipColor.opacity(0.25)
-                                : Color(.systemGray6)
+                                : Color.gray.opacity(0.12)
                         )
                         .foregroundStyle(selected ? factor.chipColor : .secondary)
                         .overlay(
@@ -464,7 +474,7 @@ struct NoteFieldView: View {
             )
             .lineLimit(3...5)
             .padding(12)
-            .background(Color(.systemGray6), in: RoundedRectangle(cornerRadius: 12))
+            .background(Color.gray.opacity(0.12), in: RoundedRectangle(cornerRadius: 12))
         }
     }
 }
@@ -497,12 +507,14 @@ struct SubmitButton: View {
                             startPoint: .leading,
                             endPoint: .trailing
                           ))
-                        : AnyShapeStyle(Color(.systemGray4))
+                        : AnyShapeStyle(Color.gray.opacity(0.30))
                 )
                 .clipShape(RoundedRectangle(cornerRadius: 16))
         }
         .disabled(!enabled)
+        #if os(iOS)
         .sensoryFeedback(.success, trigger: didSubmit)
+        #endif
     }
 }
 
@@ -665,6 +677,15 @@ struct BreatheControlButton: View {
     @Environment(MindBloomModel.self) private var model
 
     var body: some View {
+        if #available(macOS 14, iOS 17, *) {
+            coreButton
+                .symbolEffect(.bounce, value: model.isBreathing)
+        } else {
+            coreButton
+        }
+    }
+
+    @ViewBuilder private var coreButton: some View {
         Button {
             withAnimation(.spring(response: 0.35, dampingFraction: 0.70)) {
                 if model.isBreathing {
@@ -686,6 +707,5 @@ struct BreatheControlButton: View {
                 .clipShape(Capsule())
                 .shadow(color: .black.opacity(0.3), radius: 8)
         }
-        .symbolEffect(.bounce, value: model.isBreathing)
     }
 }
